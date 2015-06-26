@@ -9,9 +9,7 @@ module TieredCaching
       end
 
       def set(key)
-        value = yield
-        @@tiers.map { |store| store.set(key, value) }
-        value
+        yield.tap { |value| @@tiers.map { |store| store.set(key, value) } }
       end
 
       def get(key)
@@ -34,8 +32,7 @@ module TieredCaching
         tier = @@tiers[tier_index]
         tier.get(key) || begin
           result = internal_get(key, tier_index + 1)
-          tier.set(key, result) if result
-          result
+          result && tier.set(key, result)
         end
       end
     end
