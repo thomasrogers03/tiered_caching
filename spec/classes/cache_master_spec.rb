@@ -78,5 +78,32 @@ module TieredCaching
 
     end
 
+    describe '.clear' do
+      let(:lower_cache) { StoreHelpers::MockStore.new }
+
+      before do
+        CacheMaster << lower_cache
+        CacheMaster.set(key) { value }
+      end
+
+      it 'should clear up to the specified level of cache' do
+        CacheMaster.clear(1)
+        expect(global_store).to be_empty
+      end
+
+      it 'should not clear any deeper than the specified level' do
+        CacheMaster.clear(1)
+        expect(lower_cache).not_to be_empty
+      end
+
+      context 'when requesting to clear a lower level of cache' do
+        it 'should clear multiple levels of cache' do
+          CacheMaster.clear(2)
+          expect(global_store).to be_empty
+          expect(lower_cache).to be_empty
+        end
+      end
+    end
+
   end
 end

@@ -6,6 +6,8 @@ module StoreHelpers
 
     def_delegator :@store, :[], :get
     def_delegator :@store, :[]=, :set
+    def_delegator :@store, :clear
+    def_delegator :@store, :empty?
 
     def initialize
       @store = {}
