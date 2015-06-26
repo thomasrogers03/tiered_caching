@@ -11,6 +11,13 @@ module TieredCaching
       def set(key)
         @@tiers.each { |store| store.set(key, yield) }
       end
+
+      def get(key)
+        @@tiers.each do |tier|
+          result = tier.get(key)
+          return result if result
+        end
+      end
     end
 
   end
