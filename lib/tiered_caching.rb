@@ -14,3 +14,4 @@
 # limitations under the License.
 #++
 
+require 'tiered_caching/cache_master'
