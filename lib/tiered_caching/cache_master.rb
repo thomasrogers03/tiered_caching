@@ -15,11 +15,7 @@ module TieredCaching
       end
 
       def get(key)
-        @@tiers.each do |tier|
-          result = tier.get(key)
-          return result if result
-        end
-        nil
+        internal_get(key)
       end
 
       def getset(key, &block)
@@ -28,6 +24,19 @@ module TieredCaching
 
       def clear(depth)
         @@tiers[0...depth].map(&:clear)
+      end
+
+      private
+
+      def internal_get(key, tier_index = 0)
+        return nil if tier_index >= @@tiers.count
+
+        tier = @@tiers[tier_index]
+        tier.get(key) || begin
+          result = internal_get(key, tier_index + 1)
+          tier.set(key, result)
+          result
+        end
       end
     end
 

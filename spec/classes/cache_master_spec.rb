@@ -84,6 +84,32 @@ module TieredCaching
           it 'should request the value from a lower tier' do
             expect(CacheMaster.get(key)).to eq(value)
           end
+
+          it 'should move the value up to a higher level of cache for the next request' do
+            CacheMaster.get(key)
+            expect(global_store.get(key)).to eq(value)
+          end
+
+          context 'with numerous tiers of cache' do
+            let(:lowest_cache) { StoreHelpers::MockStore.new }
+
+            before do
+              CacheMaster << lowest_cache
+              global_store.set(key, nil)
+              lower_cache.set(key, nil)
+              lowest_cache.set(key, value)
+            end
+
+            it 'should request the highest tier the value exists on' do
+              expect(CacheMaster.get(key)).to eq(value)
+            end
+
+            it 'should move the value up to a higher level of cache for the next request' do
+              CacheMaster.get(key)
+              expect(global_store.get(key)).to eq(value)
+              expect(lower_cache.get(key)).to eq(value)
+            end
+          end
         end
       end
 
