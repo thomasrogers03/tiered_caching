@@ -1,6 +1,6 @@
 module TieredCaching
+  #noinspection RubyClassVariableUsageInspection
   class CacheMaster
-    #noinspection RubyClassVariableUsageInspection
     @@tiers = []
 
     class << self
