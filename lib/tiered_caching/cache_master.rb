@@ -34,7 +34,7 @@ module TieredCaching
         tier = @@tiers[tier_index]
         tier.get(key) || begin
           result = internal_get(key, tier_index + 1)
-          tier.set(key, result)
+          tier.set(key, result) if result
           result
         end
       end

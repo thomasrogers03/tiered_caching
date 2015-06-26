@@ -109,6 +109,17 @@ module TieredCaching
               expect(global_store.get(key)).to eq(value)
               expect(lower_cache.get(key)).to eq(value)
             end
+
+            context 'when no level of cache has the value' do
+              let(:value) { nil }
+
+              it 'should not call #set on any level of cache' do
+                expect(global_store).not_to receive(:set)
+                expect(lower_cache).not_to receive(:set)
+                expect(lowest_cache).not_to receive(:set)
+                CacheMaster.get(key)
+              end
+            end
           end
         end
       end
