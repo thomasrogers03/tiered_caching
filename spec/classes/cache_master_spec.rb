@@ -23,6 +23,18 @@ module TieredCaching
           expect(global_store.get(key)).to eq(value)
         end
       end
+
+      context 'with multiple cache layers' do
+        let(:lower_cache) { StoreHelpers::MockStore.new }
+
+        before { CacheMaster << lower_cache }
+
+        it 'should save the items to all underlying stores' do
+          CacheMaster.set(key) { value }
+          expect(global_store.get(key)).to eq(value)
+          expect(lower_cache.get(key)).to eq(value)
+        end
+      end
     end
 
   end

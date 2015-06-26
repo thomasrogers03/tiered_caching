@@ -9,7 +9,7 @@ module TieredCaching
       end
 
       def set(key)
-        @@tiers.first.set(key, yield)
+        @@tiers.each { |store| store.set(key, yield) }
       end
     end
 
