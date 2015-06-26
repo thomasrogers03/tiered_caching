@@ -14,6 +14,10 @@ module TieredCaching
         expect(global_store.get(key)).to eq(value)
       end
 
+      it 'should return the value of the block' do
+        expect(CacheMaster.set(key) { value }).to eq(value)
+      end
+
       context 'with a different key-value pair' do
         let(:key) { 'lock' }
         let(:value) { 'door' }
@@ -44,6 +48,14 @@ module TieredCaching
         expect(CacheMaster.get(key)).to eq(value)
       end
 
+      context 'when no level of cache contains the key' do
+        let(:value) { nil }
+
+        it 'should be nil' do
+          expect(CacheMaster.get(key)).to be_nil
+        end
+      end
+
       context 'with a different key-value pair' do
         let(:key) { 'lock' }
         let(:value) { 'door' }
@@ -52,7 +64,6 @@ module TieredCaching
           expect(CacheMaster.get(key)).to eq(value)
         end
       end
-
 
       context 'with multiple cache layers' do
         let(:lower_cache) { StoreHelpers::MockStore.new }
@@ -76,6 +87,33 @@ module TieredCaching
         end
       end
 
+    end
+
+    describe '.getset' do
+      let(:block) { ->() { value } }
+
+      it 'should return the value of the passed in block' do
+        expect(CacheMaster.getset(key, &block)).to eq(value)
+      end
+
+      it 'should return a previously set value if the key has already be assigned to a value' do
+        CacheMaster.set(key) { 'hello' }
+        expect(CacheMaster.getset(key, &block)).to eq('hello')
+      end
+
+      it 'should cache the result of the block' do
+        CacheMaster.getset(key) { 'hello' }
+        expect(CacheMaster.getset(key, &block)).to eq('hello')
+      end
+
+      context 'with a different key-value pair' do
+        let(:key) { 'lock' }
+        let(:value) { 'door' }
+
+        it 'should return the value of the passed in block' do
+          expect(CacheMaster.getset(key, &block)).to eq(value)
+        end
+      end
     end
 
     describe '.clear' do
