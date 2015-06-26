@@ -69,15 +69,40 @@ module TieredCaching
 
       context 'with the wrong type of object specified' do
         it 'should raise an error' do
-          expect{subject[key] = 'bad type'}.to raise_error(TypeError, 'Cannot convert String into TieredCaching::MockObject')
+          expect { subject[key] = 'bad type' }.to raise_error(TypeError, 'Cannot convert String into TieredCaching::MockObject')
         end
 
         context 'with a different type combination' do
           subject { OtherMockObject }
 
           it 'should raise an error' do
-            expect{subject[key] = 1337}.to raise_error(TypeError, 'Cannot convert Fixnum into TieredCaching::OtherMockObject')
+            expect { subject[key] = 1337 }.to raise_error(TypeError, 'Cannot convert Fixnum into TieredCaching::OtherMockObject')
           end
+        end
+      end
+    end
+
+    describe '#save_to_cache' do
+      it 'should save the object to cache using the specified key' do
+        object.save_to_cache(key)
+        expect(subject[key]).to eq(object)
+      end
+
+      context 'with a different key' do
+        let(:key) { 'other key' }
+
+        it 'should save the object to cache using the specified key' do
+          object.save_to_cache(key)
+          expect(subject[key]).to eq(object)
+        end
+      end
+
+      context 'with a different type' do
+        subject { OtherMockObject }
+
+        it 'should save the object to cache using the right type' do
+          object.save_to_cache(key)
+          expect(subject[key]).to eq(object)
         end
       end
     end

@@ -19,5 +19,9 @@ module TieredCaching
       base.send(:extend, CachedObjectStatic)
     end
 
+    def save_to_cache(key)
+      self.class[key] = self
+    end
+
   end
 end
