@@ -67,6 +67,19 @@ module TieredCaching
           end
         end
 
+        context 'when the replication factor is not specified' do
+          let(:store_count) { 3 }
+          subject { ReplicatingStore.new(internal_stores) }
+
+          it 'should save the value to all underlying stores' do
+            subject.set(key, value)
+            expect(internal_stores[0].get(key)).to eq(value)
+            expect(internal_stores[1].get(key)).to eq(value)
+            expect(internal_stores[2].get(key)).to eq(value)
+          end
+
+        end
+
       end
     end
 

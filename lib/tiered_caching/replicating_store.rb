@@ -1,8 +1,8 @@
 module TieredCaching
   class ReplicatingStore
-    def initialize(internal_stores, replication_factor)
+    def initialize(internal_stores, replication_factor = nil)
       @internal_stores = internal_stores
-      @replication_factor = replication_factor
+      @replication_factor = replication_factor || internal_stores.count
     end
 
     def set(key, value)
