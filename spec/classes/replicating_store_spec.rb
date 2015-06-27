@@ -129,6 +129,15 @@ module TieredCaching
           end
         end
 
+        context 'with a different replication factor' do
+          let(:replication_factor) { 1 }
+          let(:store_with_value) { (hash + 1) % store_count }
+
+          it 'should should not search any deeper than the replication factor' do
+            expect(subject.get(key)).to be_nil
+          end
+        end
+
       end
 
     end
