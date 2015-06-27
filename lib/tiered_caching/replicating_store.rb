@@ -11,7 +11,22 @@ module TieredCaching
       end
     end
 
+    def get(key)
+      index = store_index(key.hash)
+      recursive_get(key, index)
+    end
+
     private
+
+    def internal_get(key, start_index, index)
+      return nil if start_index == index
+
+      recursive_get(key, index)
+    end
+
+    def recursive_get(key, index)
+      @internal_stores[index].get(key) || internal_get(key, index, store_index(index+1))
+    end
 
     def replication_range(key)
       start_index = key.hash

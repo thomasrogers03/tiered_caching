@@ -4,9 +4,13 @@ module TieredCaching
   describe ReplicatingStore do
     let(:internal_stores) { [global_store] }
     let(:replication_factor) { 1 }
+    let(:hash) { 1234567890 }
     let(:key) { 'key' }
     let(:value) { 'value' }
+
     subject { ReplicatingStore.new(internal_stores, replication_factor) }
+
+    before { allow(key).to receive(:hash).and_return(hash) }
 
     describe '#set' do
       it 'should save the value to the underlying store' do
@@ -25,11 +29,8 @@ module TieredCaching
       end
 
       context 'with multiple underlying stores' do
-        let(:hash) { 1234567890 }
         let(:store_count) { 2 }
         let(:internal_stores) { store_count.times.map { StoreHelpers::MockStore.new } }
-
-        before { allow(key).to receive(:hash).and_return(hash) }
 
         it 'should save the value to the store bucketed by the hash of the key' do
           subject.set(key, value)
@@ -81,6 +82,55 @@ module TieredCaching
         end
 
       end
+    end
+
+    describe '#get' do
+      before { global_store.set(key, value) }
+
+      it 'should retrieve the value from the underlying store' do
+        expect(subject.get(key)).to eq(value)
+      end
+
+      context 'with a different key-value pair' do
+        let(:key) { 'lock' }
+        let(:value) { 'window' }
+
+        it 'should retrieve the value from the underlying store' do
+          expect(subject.get(key)).to eq(value)
+        end
+      end
+
+      context 'with multiple underyling stores' do
+        let(:hash) { 7 }
+        let(:store_count) { 5 }
+        let(:replication_factor) { store_count }
+        let(:store_with_value) { hash % store_count }
+        let(:internal_stores) { store_count.times.map { StoreHelpers::MockStore.new } }
+
+        before { internal_stores[store_with_value].set(key, value) }
+
+        it 'should retrieve the value from the store matching the token of the key' do
+          expect(subject.get(key)).to eq(value)
+        end
+
+        context 'when the value is not available from the store matching the token' do
+          let(:store_with_value) { (hash +  1) % store_count }
+
+          it 'should retrieve the value from the first store containing the value' do
+            expect(subject.get(key)).to eq(value)
+          end
+
+          context 'when the value is deeper' do
+            let(:store_with_value) { (hash +  3) % store_count }
+
+            it 'should retrieve the value from the first store containing the value' do
+              expect(subject.get(key)).to eq(value)
+            end
+          end
+        end
+
+      end
+
     end
 
   end
