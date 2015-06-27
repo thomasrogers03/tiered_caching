@@ -104,7 +104,8 @@ module TieredCaching
         let(:hash) { 7 }
         let(:store_count) { 5 }
         let(:replication_factor) { store_count }
-        let(:store_with_value) { hash % store_count }
+        let(:store_on_token) { hash % store_count }
+        let(:store_with_value) { store_on_token }
         let(:internal_stores) { store_count.times.map { StoreHelpers::MockStore.new } }
 
         before { internal_stores[store_with_value].set(key, value) }
@@ -114,17 +115,23 @@ module TieredCaching
         end
 
         context 'when the value is not available from the store matching the token' do
-          let(:store_with_value) { (hash +  1) % store_count }
+          let(:store_with_value) { (hash + 1) % store_count }
 
           it 'should retrieve the value from the first store containing the value' do
             expect(subject.get(key)).to eq(value)
           end
 
           context 'when the value is deeper' do
-            let(:store_with_value) { (hash +  3) % store_count }
+            let(:store_with_value) { (hash + 3) % store_count }
 
             it 'should retrieve the value from the first store containing the value' do
               expect(subject.get(key)).to eq(value)
+            end
+
+            it 'should fill in the value on all stores in the replication range' do
+              subject.get(key)
+              expect(internal_stores[store_on_token].get(key)).to eq(value)
+              expect(internal_stores[store_on_token+1].get(key)).to eq(value)
             end
           end
         end

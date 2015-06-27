@@ -26,7 +26,11 @@ module TieredCaching
     end
 
     def recursive_get(key, end_index, index)
-      @internal_stores[index].get(key) || internal_get(key, end_index, store_index(index+1))
+      store = @internal_stores[index]
+      store.get(key) || begin
+        result = internal_get(key, end_index, store_index(index+1))
+        result && store.set(key, result)
+      end
     end
 
     def replication_range(key)
