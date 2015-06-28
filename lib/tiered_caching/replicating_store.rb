@@ -9,6 +9,7 @@ module TieredCaching
       replication_range(key).map do |index|
         @internal_stores[store_index(index)].set(key, value)
       end
+      value
     end
 
     def get(key)

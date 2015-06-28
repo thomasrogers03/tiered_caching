@@ -37,6 +37,10 @@ module TieredCaching
           expect(internal_stores[0].get(key)).to eq(value)
         end
 
+        it 'should return the specified value' do
+          expect(subject.set(key, value)).to eq(value)
+        end
+
         it 'should not save the value to any other store' do
           subject.set(key, value)
           expect(internal_stores[1].get(key)).to be_nil
@@ -54,6 +58,10 @@ module TieredCaching
           it 'should not save the value to any other store' do
             subject.set(key, value)
             expect(internal_stores[0].get(key)).to be_nil
+          end
+
+          it 'should return the specified value' do
+            expect(subject.set(key, value)).to eq(value)
           end
         end
 
