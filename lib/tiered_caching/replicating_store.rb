@@ -13,8 +13,8 @@ module TieredCaching
     end
 
     def get(key)
-      index = store_index(key.hash)
-      end_index = store_index(key.hash + @replication_factor)
+      index = store_index(hash_for_key(key))
+      end_index = store_index(hash_for_key(key) + @replication_factor)
       recursive_get(key, end_index, index)
     end
 
@@ -35,13 +35,17 @@ module TieredCaching
     end
 
     def replication_range(key)
-      start_index = key.hash
+      start_index = hash_for_key(key)
       end_index = start_index + @replication_factor
       (start_index...end_index)
     end
 
     def store_index(index)
       index % @internal_stores.count
+    end
+
+    def hash_for_key(key)
+      key.hash
     end
   end
 end
