@@ -4,13 +4,14 @@ module TieredCaching
   describe ReplicatingStore do
     let(:internal_stores) { [global_store] }
     let(:replication_factor) { 1 }
-    let(:hash) { 1234567890 }
     let(:key) { 'key' }
     let(:value) { 'value' }
+    let(:hash) { 1234567890 }
+    let(:md5_hash) { [hash].pack('L') }
 
     subject { ReplicatingStore.new(internal_stores, replication_factor) }
 
-    before { allow(key).to receive(:hash).and_return(hash) }
+    before { allow(Digest::MD5).to receive(:hexdigest).with(key.to_s).and_return(md5_hash) }
 
     describe '#set' do
       it 'should save the value to the underlying store' do
@@ -47,7 +48,7 @@ module TieredCaching
         end
 
         context 'with a different key' do
-          let(:key) { 'lock' }
+          let(:key) { :lock }
           let(:hash) { 1234567891 }
 
           it 'should save the value to the store bucketed by the hash of the key' do

@@ -45,7 +45,7 @@ module TieredCaching
     end
 
     def hash_for_key(key)
-      key.hash
+      Digest::MD5.hexdigest(key.to_s).unpack('L').first
     end
   end
 end
