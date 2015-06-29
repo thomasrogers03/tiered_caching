@@ -1,6 +1,5 @@
 module TieredCaching
   class SafeConnectionPool
-
     def initialize(internal_pool)
       @internal_pool = internal_pool
     end
@@ -9,10 +8,21 @@ module TieredCaching
       @internal_pool.with { |conn| safe_with(conn, &block) }
     end
 
+    def disabled?
+      !!@disabled
+    end
+
     private
 
     def safe_with(conn)
-      yield conn rescue nil
+      return nil if disabled?
+
+      begin
+        yield conn
+      rescue
+        @disabled = true
+        nil
+      end
     end
 
   end
