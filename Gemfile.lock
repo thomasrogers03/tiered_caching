@@ -7,7 +7,7 @@ GIT
 PATH
   remote: .
   specs:
-    tiered_caching (0.0.1)
+    tiered_caching (0.0.2)
       thomas_utils (>= 0.1.12)
 
 GEM
