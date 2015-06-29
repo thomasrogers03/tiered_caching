@@ -18,6 +18,7 @@ GEM
     coderay (1.1.0)
     concurrent-ruby (0.8.0)
       ref (~> 1.0, >= 1.0.5)
+    connection_pool (2.2.0)
     diff-lcs (1.2.5)
     docile (1.1.5)
     ffi (1.9.8)
@@ -93,6 +94,7 @@ PLATFORMS
 
 DEPENDENCIES
   concurrent-ruby
+  connection_pool
   guard
   guard-bundler
   guard-rspec

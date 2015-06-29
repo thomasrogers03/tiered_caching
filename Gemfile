@@ -19,4 +19,5 @@ group :test do
   gem 'pry'
   gem 'timecop'
   gem 'simplecov', require: false
+  gem 'connection_pool'
 end

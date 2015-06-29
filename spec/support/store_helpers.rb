@@ -17,6 +17,22 @@ module StoreHelpers
     end
   end
 
+  class MockExecutor
+    def post(*args, &block)
+      @args = args
+      @callback = block
+    end
+
+    def call
+      @callback.call(*@args) if @callback
+    end
+
+    def reset!
+      @args = nil
+      @callback = nil
+    end
+  end
+
   let(:global_store) { MockStore.new }
 
   before { TieredCaching::CacheMaster.reset! }
