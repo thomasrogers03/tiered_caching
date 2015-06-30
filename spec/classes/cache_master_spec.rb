@@ -5,7 +5,10 @@ module TieredCaching
     let(:key) { 'key' }
     let(:value) { 'value' }
 
-    before { CacheMaster << global_store }
+    before do
+      CacheMaster << global_store
+      allow(Logging.logger).to receive(:warn)
+    end
 
     describe '.set' do
 
@@ -90,6 +93,11 @@ module TieredCaching
             expect(global_store.get(key)).to eq(value)
           end
 
+          it 'should log a cache miss at the given level' do
+            expect(Logging.logger).to receive(:warn).with('CacheMaster: Cache miss at level 0')
+            CacheMaster.get(key)
+          end
+
           context 'with numerous tiers of cache' do
             let(:lowest_cache) { StoreHelpers::MockStore.new }
 
@@ -108,6 +116,11 @@ module TieredCaching
               CacheMaster.get(key)
               expect(global_store.get(key)).to eq(value)
               expect(lower_cache.get(key)).to eq(value)
+            end
+
+            it 'should log a cache miss at the given level' do
+              expect(Logging.logger).to receive(:warn).with('CacheMaster: Cache miss at level 1')
+              CacheMaster.get(key)
             end
 
             context 'when no level of cache has the value' do
