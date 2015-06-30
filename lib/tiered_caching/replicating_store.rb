@@ -29,6 +29,7 @@ module TieredCaching
     def recursive_get(key, end_index, index)
       store = @internal_stores[index]
       store.get(key) || begin
+        Logging.logger.warn("ReplicatingStore: Cache miss at level #{index}")
         result = internal_get(key, end_index, store_index(index+1))
         result && store.set(key, result)
       end

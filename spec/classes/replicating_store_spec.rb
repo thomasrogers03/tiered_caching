@@ -11,7 +11,10 @@ module TieredCaching
 
     subject { ReplicatingStore.new(internal_stores, replication_factor) }
 
-    before { allow(Digest::MD5).to receive(:hexdigest).with(key.to_s).and_return(md5_hash) }
+    before do
+      allow(Digest::MD5).to receive(:hexdigest).with(key.to_s).and_return(md5_hash)
+      allow(Logging.logger).to receive(:warn)
+    end
 
     describe '#set' do
       it 'should save the value to the underlying store' do
@@ -130,6 +133,11 @@ module TieredCaching
             expect(subject.get(key)).to eq(value)
           end
 
+          it 'should log a cache miss at the given level' do
+            expect(Logging.logger).to receive(:warn).with('ReplicatingStore: Cache miss at level 2')
+            subject.get(key)
+          end
+
           context 'when the value is deeper' do
             let(:store_with_value) { (hash + 3) % store_count }
 
@@ -142,6 +150,14 @@ module TieredCaching
               expect(internal_stores[store_on_token].get(key)).to eq(value)
               expect(internal_stores[store_on_token+1].get(key)).to eq(value)
             end
+
+            it 'should log a cache miss at the given level' do
+              expect(Logging.logger).to receive(:warn).with('ReplicatingStore: Cache miss at level 2')
+              expect(Logging.logger).to receive(:warn).with('ReplicatingStore: Cache miss at level 3')
+              expect(Logging.logger).to receive(:warn).with('ReplicatingStore: Cache miss at level 4')
+              subject.get(key)
+            end
+
           end
         end
 
