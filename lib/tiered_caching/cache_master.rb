@@ -8,8 +8,8 @@ module TieredCaching
         @@tiers << tier
       end
 
-      def set(key)
-        yield.tap { |value| @@tiers.map { |store| store.set(key, value) } }
+      def set(key, value = nil)
+        (value || yield).tap { |value| @@tiers.map { |store| store.set(key, value) } }
       end
 
       def get(key)

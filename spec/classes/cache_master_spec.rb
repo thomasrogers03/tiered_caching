@@ -21,6 +21,31 @@ module TieredCaching
         expect(CacheMaster.set(key) { value }).to eq(value)
       end
 
+      context 'when not using a block to set the value' do
+        it 'should save the specified item to the underlying store' do
+          CacheMaster.set(key, value)
+          expect(global_store.get(key)).to eq(value)
+        end
+
+        it 'should return the specified value' do
+          expect(CacheMaster.set(key, value)).to eq(value)
+        end
+
+        context 'with a different key-value pair' do
+          let(:key) { 'lock' }
+          let(:value) { 'door' }
+
+          it 'should save the specified item to the underlying store' do
+            CacheMaster.set(key) { value }
+            expect(global_store.get(key)).to eq(value)
+          end
+
+          it 'should return the value of the block' do
+            expect(CacheMaster.set(key) { value }).to eq(value)
+          end
+        end
+      end
+
       context 'with a different key-value pair' do
         let(:key) { 'lock' }
         let(:value) { 'door' }
@@ -28,6 +53,10 @@ module TieredCaching
         it 'should save the specified item to the underlying store' do
           CacheMaster.set(key) { value }
           expect(global_store.get(key)).to eq(value)
+        end
+
+        it 'should return the value of the block' do
+          expect(CacheMaster.set(key) { value }).to eq(value)
         end
       end
 
