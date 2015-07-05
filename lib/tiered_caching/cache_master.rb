@@ -31,7 +31,7 @@ module TieredCaching
 
         tier = @@tiers[tier_index]
         tier.get(key) || begin
-          Logging.logger.warn("CacheMaster: Cache miss at level #{tier_index}")
+          Logging.logger.warn("#{self}: Cache miss at level #{tier_index}")
           result = internal_get(key, tier_index + 1)
           result && tier.set(key, result)
         end
