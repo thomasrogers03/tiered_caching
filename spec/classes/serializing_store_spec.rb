@@ -5,7 +5,7 @@ module TieredCaching
 
     let(:key) { :key }
     let(:value) { :value }
-    let(:serialized_key) { Marshal.dump(key) }
+    let(:serialized_key) { Digest::MD5.hexdigest(Marshal.dump(key)) }
     let(:serialized_value) { Marshal.dump(value) }
 
     subject { SerializingStore.new(global_store) }
