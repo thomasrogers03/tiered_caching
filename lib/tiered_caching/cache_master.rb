@@ -4,25 +4,9 @@ module TieredCaching
     @@cache_line = nil
 
     class << self
-      def <<(tier)
-        cache_line << tier
-      end
+      extend Forwardable
 
-      def set(key, value = nil, &block)
-        cache_line.set(key, value, &block)
-      end
-
-      def get(key)
-        cache_line.get(key)
-      end
-
-      def getset(key, &block)
-        cache_line.getset(key, &block)
-      end
-
-      def clear(depth)
-        cache_line.clear(depth)
-      end
+      def_delegators :cache_line, :<<, :set, :get, :getset, :clear
 
       private
 
