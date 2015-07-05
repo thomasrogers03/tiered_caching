@@ -1,40 +1,33 @@
 module TieredCaching
   #noinspection RubyClassVariableUsageInspection
   class CacheMaster
-    @@tiers = []
+    @@cache_line = nil
 
     class << self
       def <<(tier)
-        @@tiers << tier
+        cache_line << tier
       end
 
-      def set(key, value = nil)
-        (value || yield).tap { |value| @@tiers.map { |store| store.set(key, value) } }
+      def set(key, value = nil, &block)
+        cache_line.set(key, value, &block)
       end
 
       def get(key)
-        internal_get(key)
+        cache_line.get(key)
       end
 
       def getset(key, &block)
-        get(key) || set(key, &block)
+        cache_line.getset(key, &block)
       end
 
       def clear(depth)
-        @@tiers[0...depth].map(&:clear)
+        cache_line.clear(depth)
       end
 
       private
 
-      def internal_get(key, tier_index = 0)
-        return nil if tier_index >= @@tiers.count
-
-        tier = @@tiers[tier_index]
-        tier.get(key) || begin
-          Logging.logger.warn("#{self}: Cache miss at level #{tier_index}")
-          result = internal_get(key, tier_index + 1)
-          result && tier.set(key, result)
-        end
+      def cache_line
+        @@cache_line ||= CacheLine.new(self.to_s)
       end
     end
 

@@ -122,7 +122,7 @@ module TieredCaching
           end
 
           it 'should log a cache miss at the given level' do
-            expect(Logging.logger).to receive(:warn).with("#{cache_line}: Cache miss at level 0")
+            expect(Logging.logger).to receive(:warn).with("#{cache_line_name}: Cache miss at level 0")
             cache_line.get(key)
           end
 
@@ -147,7 +147,7 @@ module TieredCaching
             end
 
             it 'should log a cache miss at the given level' do
-              expect(Logging.logger).to receive(:warn).with("#{cache_line}: Cache miss at level 1")
+              expect(Logging.logger).to receive(:warn).with("#{cache_line_name}: Cache miss at level 1")
               cache_line.get(key)
             end
 

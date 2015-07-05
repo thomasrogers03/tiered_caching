@@ -14,6 +14,7 @@
 # limitations under the License.
 #++
 
+require 'tiered_caching/cache_line'
 require 'tiered_caching/cache_master'
 require 'tiered_caching/cached_object'
 require 'tiered_caching/replicating_store'

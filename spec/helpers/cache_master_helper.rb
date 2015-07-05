@@ -2,7 +2,7 @@ module TieredCaching
   class CacheMaster
     def self.reset!
       #noinspection RubyClassVariableUsageInspection
-      @@tiers.clear
+      @@cache_line = nil
     end
   end
 end
