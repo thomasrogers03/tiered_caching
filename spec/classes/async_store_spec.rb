@@ -3,12 +3,12 @@ require 'rspec'
 module TieredCaching
   describe AsyncStore do
 
-    let(:pool) { ConnectionPool.new(size: 1) { global_store } }
+    let(:store_pool) { ConnectionPool.new(size: 1) { global_store } }
     let(:executor) { StoreHelpers::MockExecutor.new }
     let(:key) { 'key' }
     let(:value) { 'value' }
 
-    subject { AsyncStore.new(pool, executor) }
+    subject { AsyncStore.new(store_pool, executor) }
 
     before { executor.reset! }
 

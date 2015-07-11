@@ -1,8 +1,8 @@
 module TieredCaching
   class AsyncStore
 
-    def initialize(pool, executor)
-      @pool = pool
+    def initialize(store_pool, executor)
+      @store_pool = store_pool
       @executor = executor
     end
 
@@ -28,7 +28,7 @@ module TieredCaching
     private
 
     def internal_store(&block)
-      @pool.with(&block)
+      @store_pool.with(&block)
     end
 
   end
