@@ -15,6 +15,15 @@ module TieredCaching
       deserialized_value(serialized_value)
     end
 
+    def delete(key)
+      serialized_key = serialized_key(key)
+      @internal_store.delete(serialized_key)
+    end
+
+    def clear
+      @internal_store.clear
+    end
+
     private
 
     def serialized_key(key)
