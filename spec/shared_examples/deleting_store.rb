@@ -4,6 +4,8 @@ module TieredCaching
     let(:key) { 'key' }
     let(:value) { 'value' }
 
+    before { allow(Logging.logger).to receive(:warn) }
+
     describe '#delete' do
       it 'should delete the item from the store' do
         subject.set('key', 'value')

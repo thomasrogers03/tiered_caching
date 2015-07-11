@@ -11,168 +11,171 @@ module TieredCaching
 
     subject { ReplicatingStore.new(internal_stores, replication_factor) }
 
-    before do
-      allow(Digest::MD5).to receive(:hexdigest).with(key.to_s).and_return(md5_hash)
-      allow(Logging.logger).to receive(:warn)
-    end
-
-    describe '#set' do
-      it 'should save the value to the underlying store' do
-        subject.set(key, value)
-        expect(global_store.get(key)).to eq(value)
+    describe 'storage' do
+      before do
+        allow(Digest::MD5).to receive(:hexdigest).with(key.to_s).and_return(md5_hash)
+        allow(Logging.logger).to receive(:warn)
       end
 
-      context 'with a different key-value pair' do
-        let(:key) { 'lock' }
-        let(:value) { 'door' }
-
+      describe '#set' do
         it 'should save the value to the underlying store' do
           subject.set(key, value)
           expect(global_store.get(key)).to eq(value)
         end
-      end
 
-      context 'with multiple underlying stores' do
-        let(:store_count) { 2 }
-        let(:internal_stores) { store_count.times.map { StoreHelpers::MockStore.new } }
+        context 'with a different key-value pair' do
+          let(:key) { 'lock' }
+          let(:value) { 'door' }
 
-        it 'should save the value to the store bucketed by the hash of the key' do
-          subject.set(key, value)
-          expect(internal_stores[0].get(key)).to eq(value)
+          it 'should save the value to the underlying store' do
+            subject.set(key, value)
+            expect(global_store.get(key)).to eq(value)
+          end
         end
 
-        it 'should return the specified value' do
-          expect(subject.set(key, value)).to eq(value)
-        end
-
-        it 'should not save the value to any other store' do
-          subject.set(key, value)
-          expect(internal_stores[1].get(key)).to be_nil
-        end
-
-        context 'with a different key' do
-          let(:key) { :lock }
-          let(:hash) { 1234567891 }
+        context 'with multiple underlying stores' do
+          let(:store_count) { 2 }
+          let(:internal_stores) { store_count.times.map { StoreHelpers::MockStore.new } }
 
           it 'should save the value to the store bucketed by the hash of the key' do
             subject.set(key, value)
-            expect(internal_stores[1].get(key)).to eq(value)
-          end
-
-          it 'should not save the value to any other store' do
-            subject.set(key, value)
-            expect(internal_stores[0].get(key)).to be_nil
+            expect(internal_stores[0].get(key)).to eq(value)
           end
 
           it 'should return the specified value' do
             expect(subject.set(key, value)).to eq(value)
           end
-        end
 
-        context 'with a different replication factor' do
-          let(:replication_factor) { 2 }
-          let(:store_count) { 3 }
-
-          it 'should save the value to the store bucketed by the hash of the key' do
+          it 'should not save the value to any other store' do
             subject.set(key, value)
-            expect(internal_stores[0].get(key)).to eq(value)
-            expect(internal_stores[1].get(key)).to eq(value)
-          end
-        end
-
-        context 'when the replication factor is not specified' do
-          let(:store_count) { 3 }
-          subject { ReplicatingStore.new(internal_stores) }
-
-          it 'should save the value to all underlying stores' do
-            subject.set(key, value)
-            expect(internal_stores[0].get(key)).to eq(value)
-            expect(internal_stores[1].get(key)).to eq(value)
-            expect(internal_stores[2].get(key)).to eq(value)
+            expect(internal_stores[1].get(key)).to be_nil
           end
 
+          context 'with a different key' do
+            let(:key) { :lock }
+            let(:hash) { 1234567891 }
+
+            it 'should save the value to the store bucketed by the hash of the key' do
+              subject.set(key, value)
+              expect(internal_stores[1].get(key)).to eq(value)
+            end
+
+            it 'should not save the value to any other store' do
+              subject.set(key, value)
+              expect(internal_stores[0].get(key)).to be_nil
+            end
+
+            it 'should return the specified value' do
+              expect(subject.set(key, value)).to eq(value)
+            end
+          end
+
+          context 'with a different replication factor' do
+            let(:replication_factor) { 2 }
+            let(:store_count) { 3 }
+
+            it 'should save the value to the store bucketed by the hash of the key' do
+              subject.set(key, value)
+              expect(internal_stores[0].get(key)).to eq(value)
+              expect(internal_stores[1].get(key)).to eq(value)
+            end
+          end
+
+          context 'when the replication factor is not specified' do
+            let(:store_count) { 3 }
+            subject { ReplicatingStore.new(internal_stores) }
+
+            it 'should save the value to all underlying stores' do
+              subject.set(key, value)
+              expect(internal_stores[0].get(key)).to eq(value)
+              expect(internal_stores[1].get(key)).to eq(value)
+              expect(internal_stores[2].get(key)).to eq(value)
+            end
+
+          end
+
         end
-
-      end
-    end
-
-    describe '#get' do
-      before { global_store.set(key, value) }
-
-      it 'should retrieve the value from the underlying store' do
-        expect(subject.get(key)).to eq(value)
       end
 
-      context 'with a different key-value pair' do
-        let(:key) { 'lock' }
-        let(:value) { 'window' }
+      describe '#get' do
+        before { global_store.set(key, value) }
 
         it 'should retrieve the value from the underlying store' do
           expect(subject.get(key)).to eq(value)
         end
-      end
 
-      context 'with multiple underyling stores' do
-        let(:hash) { 7 }
-        let(:store_count) { 5 }
-        let(:replication_factor) { store_count }
-        let(:store_on_token) { hash % store_count }
-        let(:store_with_value) { store_on_token }
-        let(:internal_stores) { store_count.times.map { StoreHelpers::MockStore.new } }
+        context 'with a different key-value pair' do
+          let(:key) { 'lock' }
+          let(:value) { 'window' }
 
-        before { internal_stores[store_with_value].set(key, value) }
-
-        it 'should retrieve the value from the store matching the token of the key' do
-          expect(subject.get(key)).to eq(value)
+          it 'should retrieve the value from the underlying store' do
+            expect(subject.get(key)).to eq(value)
+          end
         end
 
-        context 'when the value is not available from the store matching the token' do
-          let(:store_with_value) { (hash + 1) % store_count }
+        context 'with multiple underyling stores' do
+          let(:hash) { 7 }
+          let(:store_count) { 5 }
+          let(:replication_factor) { store_count }
+          let(:store_on_token) { hash % store_count }
+          let(:store_with_value) { store_on_token }
+          let(:internal_stores) { store_count.times.map { StoreHelpers::MockStore.new } }
 
-          it 'should retrieve the value from the first store containing the value' do
+          before { internal_stores[store_with_value].set(key, value) }
+
+          it 'should retrieve the value from the store matching the token of the key' do
             expect(subject.get(key)).to eq(value)
           end
 
-          it 'should log a cache miss at the given level' do
-            expect(Logging.logger).to receive(:warn).with('ReplicatingStore: Cache miss at level 2')
-            subject.get(key)
-          end
-
-          context 'when the value is deeper' do
-            let(:store_with_value) { (hash + 3) % store_count }
+          context 'when the value is not available from the store matching the token' do
+            let(:store_with_value) { (hash + 1) % store_count }
 
             it 'should retrieve the value from the first store containing the value' do
               expect(subject.get(key)).to eq(value)
             end
 
-            it 'should fill in the value on all stores in the replication range' do
-              subject.get(key)
-              expect(internal_stores[store_on_token].get(key)).to eq(value)
-              expect(internal_stores[store_on_token+1].get(key)).to eq(value)
-            end
-
             it 'should log a cache miss at the given level' do
               expect(Logging.logger).to receive(:warn).with('ReplicatingStore: Cache miss at level 2')
-              expect(Logging.logger).to receive(:warn).with('ReplicatingStore: Cache miss at level 3')
-              expect(Logging.logger).to receive(:warn).with('ReplicatingStore: Cache miss at level 4')
               subject.get(key)
             end
 
+            context 'when the value is deeper' do
+              let(:store_with_value) { (hash + 3) % store_count }
+
+              it 'should retrieve the value from the first store containing the value' do
+                expect(subject.get(key)).to eq(value)
+              end
+
+              it 'should fill in the value on all stores in the replication range' do
+                subject.get(key)
+                expect(internal_stores[store_on_token].get(key)).to eq(value)
+                expect(internal_stores[store_on_token+1].get(key)).to eq(value)
+              end
+
+              it 'should log a cache miss at the given level' do
+                expect(Logging.logger).to receive(:warn).with('ReplicatingStore: Cache miss at level 2')
+                expect(Logging.logger).to receive(:warn).with('ReplicatingStore: Cache miss at level 3')
+                expect(Logging.logger).to receive(:warn).with('ReplicatingStore: Cache miss at level 4')
+                subject.get(key)
+              end
+
+            end
           end
-        end
 
-        context 'with a different replication factor' do
-          let(:replication_factor) { 1 }
-          let(:store_with_value) { (hash + 1) % store_count }
+          context 'with a different replication factor' do
+            let(:replication_factor) { 1 }
+            let(:store_with_value) { (hash + 1) % store_count }
 
-          it 'should should not search any deeper than the replication factor' do
-            expect(subject.get(key)).to be_nil
+            it 'should should not search any deeper than the replication factor' do
+              expect(subject.get(key)).to be_nil
+            end
           end
-        end
 
+        end
       end
-
     end
+
+    it_behaves_like 'a store that deletes keys'
 
   end
 end
