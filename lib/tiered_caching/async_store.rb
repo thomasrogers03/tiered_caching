@@ -17,6 +17,14 @@ module TieredCaching
       internal_store { |conn| conn.get(key) }
     end
 
+    def delete(key)
+      internal_store { |conn| conn.delete(key) }
+    end
+
+    def clear
+      internal_store { |conn| conn.clear }
+    end
+
     private
 
     def internal_store(&block)
