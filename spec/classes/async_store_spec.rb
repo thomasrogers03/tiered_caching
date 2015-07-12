@@ -10,7 +10,7 @@ module TieredCaching
 
     subject { AsyncStore.new(store_pool, executor) }
 
-    before { executor.reset! }
+    before { executor.reset! if executor.respond_to?(:reset!) }
 
     describe '#set' do
       after { executor.call }
@@ -54,6 +54,12 @@ module TieredCaching
           expect(subject.get(key)).to eq(value)
         end
       end
+    end
+
+    context 'using getset' do
+      let(:executor) { Concurrent::ImmediateExecutor.new }
+
+      it_behaves_like 'a store'
     end
 
     it_behaves_like 'a store that deletes keys'
