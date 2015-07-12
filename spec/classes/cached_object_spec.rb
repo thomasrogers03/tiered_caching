@@ -20,6 +20,7 @@ module TieredCaching
     before do
       subject.cache_line = cache_line
       CacheMaster[cache_line] << global_store
+      allow(Logging.logger).to receive(:warn)
     end
 
     describe '.[]' do
@@ -91,6 +92,35 @@ module TieredCaching
           it 'should raise an error' do
             expect { subject[key] = 1337 }.to raise_error(TypeError, 'Cannot convert Fixnum into TieredCaching::OtherMockObject')
           end
+        end
+      end
+    end
+
+    describe '.delete' do
+      let(:key) { 'key' }
+
+      before { subject['key'] = object }
+
+      it 'should delete the item from the store' do
+        subject.delete(key)
+        expect(subject[key]).to be_nil
+      end
+
+      context 'with a different key-value pair' do
+        let(:key) { 'lock' }
+
+        it 'should delete the item from the store' do
+          subject.delete(key)
+          expect(subject[key]).to be_nil
+        end
+      end
+
+      context 'with a different cache line' do
+        let(:cache_line) { :fast_line }
+
+        it 'should cache the object' do
+          subject.delete(key)
+          expect(CacheMaster[cache_line].get(class: MockObject, key: key)).to be_nil
         end
       end
     end

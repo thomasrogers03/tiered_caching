@@ -14,6 +14,10 @@ module TieredCaching
       CacheMaster[@cache_line].set(class: self, key: key) { value }
     end
 
+    def delete(key)
+      CacheMaster[@cache_line].delete(class: self, key: key)
+    end
+
   end
 
   module CachedObject
