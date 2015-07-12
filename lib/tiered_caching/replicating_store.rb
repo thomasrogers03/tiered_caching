@@ -18,6 +18,10 @@ module TieredCaching
       recursive_get(key, end_index, index)
     end
 
+    def getset(key)
+      get(key) || set(key, yield)
+    end
+
     def delete(key)
       replication_range(key).map do |index|
         @internal_stores[store_index(index)].delete(key)

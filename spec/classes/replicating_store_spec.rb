@@ -11,6 +11,8 @@ module TieredCaching
 
     subject { ReplicatingStore.new(internal_stores, replication_factor) }
 
+    before { allow(Logging.logger).to receive(:warn) }
+
     describe 'storage' do
       before do
         allow(Digest::MD5).to receive(:hexdigest).with(key.to_s).and_return(md5_hash)
@@ -174,6 +176,8 @@ module TieredCaching
         end
       end
     end
+
+    it_behaves_like 'a store'
 
     it_behaves_like 'a store that deletes keys'
 
