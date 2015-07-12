@@ -17,8 +17,8 @@ module TieredCaching
       internal_store { |conn| conn.get(key) }
     end
 
-    def getset(key)
-      get(key) || set(key, yield)
+    def getset(key, &block)
+      internal_store { |conn| conn.getset(key, &block) }
     end
 
     def delete(key)
