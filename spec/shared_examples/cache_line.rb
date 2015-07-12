@@ -221,5 +221,11 @@ module TieredCaching
       end
     end
 
+    describe 'deletion' do
+      subject { cache_line }
+
+      it_behaves_like 'a store that deletes keys'
+    end
+
   end
 end

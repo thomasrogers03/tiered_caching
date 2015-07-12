@@ -6,7 +6,7 @@ module TieredCaching
     class << self
       extend Forwardable
 
-      def_delegators :master_line, :<<, :set, :get, :getset, :clear
+      def_delegators :master_line, :<<, :set, :get, :getset, :delete, :clear
 
       def [](key)
         @@cache_lines[key]

@@ -22,8 +22,16 @@ module TieredCaching
       get(key) || set(key, &block)
     end
 
-    def clear(depth)
-      tiers[0...depth].map(&:clear)
+    def delete(key)
+      @tiers.map { |tier| tier.delete(key) }
+    end
+
+    def clear(depth = -1)
+      if depth == -1
+        tiers.map(&:clear)
+      else
+        tiers[0...depth].map(&:clear)
+      end
     end
 
     private
