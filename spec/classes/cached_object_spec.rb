@@ -13,10 +13,14 @@ module TieredCaching
 
     let(:key) { 'key' }
     let(:object) { subject.new }
+    let(:cache_line) { nil }
 
     subject { MockObject }
 
-    before { CacheMaster << global_store }
+    before do
+      subject.cache_line = cache_line
+      CacheMaster[cache_line] << global_store
+    end
 
     describe '.[]' do
       it 'should retrieve the object from the CacheMaster' do
@@ -64,6 +68,15 @@ module TieredCaching
         it 'should cache the object' do
           subject[key] = object
           expect(CacheMaster.get(class: OtherMockObject, key: key)).to eq(object)
+        end
+      end
+
+      context 'with a different cache line' do
+        let(:cache_line) { :fast_line }
+
+        it 'should cache the object' do
+          subject[key] = object
+          expect(CacheMaster[cache_line].get(class: MockObject, key: key)).to eq(object)
         end
       end
 
