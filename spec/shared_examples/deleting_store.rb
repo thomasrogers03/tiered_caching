@@ -1,9 +1,6 @@
 module TieredCaching
 
   shared_examples_for 'a store that deletes keys' do
-    let(:key) { 'key' }
-    let(:value) { 'value' }
-
     before { allow(Logging.logger).to receive(:warn) }
 
     describe '#delete' do
@@ -14,9 +11,6 @@ module TieredCaching
       end
 
       context 'with a different key-value pair' do
-        let(:key) { 'lock' }
-        let(:value) { 'door' }
-
         it 'should delete the item from the store' do
           subject.set('lock', 'door')
           subject.delete('lock')
@@ -27,7 +21,7 @@ module TieredCaching
 
     describe '#clear' do
       let(:attributes) do
-        10.times.inject({}) do |memo, (key, value)|
+        10.times.inject({}) do |memo|
           memo.merge!(SecureRandom.uuid => SecureRandom.uuid)
         end
       end
