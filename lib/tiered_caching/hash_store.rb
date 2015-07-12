@@ -10,5 +10,9 @@ module TieredCaching
       @hash = hash
     end
 
+    def getset(key)
+      @hash[key] ||= yield
+    end
+
   end
 end
