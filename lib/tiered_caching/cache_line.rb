@@ -4,10 +4,16 @@ module TieredCaching
     def initialize(name)
       @name = name
       @tiers = []
+      @local_tiers = []
     end
 
     def <<(tier)
       tiers << tier
+    end
+
+    def append_local_cache(tier)
+      @local_tiers << tier
+      self << tier
     end
 
     def set(key, value = nil)
@@ -24,6 +30,10 @@ module TieredCaching
 
     def delete(key)
       @tiers.map { |tier| tier.delete(key) }
+    end
+
+    def clear_local
+      @local_tiers.map(&:clear)
     end
 
     def clear(depth = -1)
