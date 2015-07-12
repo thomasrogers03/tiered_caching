@@ -15,6 +15,10 @@ module TieredCaching
       deserialized_value(serialized_value)
     end
 
+    def getset(key, &block)
+      deserialized_value(serialized_getset(key, &block))
+    end
+
     def delete(key)
       serialized_key = serialized_key(key)
       @internal_store.delete(serialized_key)
@@ -25,6 +29,10 @@ module TieredCaching
     end
 
     private
+
+    def serialized_getset(key, &block)
+      @internal_store.getset(serialized_key(key)) { serialized_value(yield) }
+    end
 
     def serialized_key(key)
       Digest::MD5.hexdigest(Marshal.dump(key))

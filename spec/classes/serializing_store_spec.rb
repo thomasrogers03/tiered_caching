@@ -52,6 +52,8 @@ module TieredCaching
       end
     end
 
+    it_behaves_like 'a store'
+
     it_behaves_like 'a store that deletes keys'
 
   end
