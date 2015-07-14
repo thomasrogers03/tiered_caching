@@ -81,18 +81,19 @@ module TieredCaching
 
     describe '#getset' do
       let(:script) do
-        %q{local value = redis.call('get', KEYS[1])
-if value
+        %q{local key = KEYS[1]
+local value = redis.call('get', key)
+if value then
   return value
 else
-  redis.call('set', ARGV[1])
+  redis.call('set', key, ARGV[1])
   return ARGV[1]
 end}
       end
       let(:sha) { store.script(:load, script) }
 
       it 'should execute a script executing a getset on redis conforming to other stores' do
-        expect(store).to receive(:evalsha).with(sha, key, value)
+        expect(store).to receive(:evalsha).with(sha, keys: [key], argv: [value])
         subject.getset(key) { value }
       end
 
@@ -107,7 +108,7 @@ end}
         let(:value) { :bottle }
 
         it 'should execute a script executing a getset on redis conforming to other stores' do
-          expect(store).to receive(:evalsha).with(sha, key, value)
+          expect(store).to receive(:evalsha).with(sha, keys: [key], argv: [value])
           subject.getset(key) { value }
         end
       end

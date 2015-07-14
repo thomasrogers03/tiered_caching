@@ -16,15 +16,16 @@ module TieredCaching
     end
 
     def getset(key)
-      script = %q{local value = redis.call('get', KEYS[1])
-if value
+      script = %q{local key = KEYS[1]
+local value = redis.call('get', key)
+if value then
   return value
 else
-  redis.call('set', ARGV[1])
+  redis.call('set', key, ARGV[1])
   return ARGV[1]
 end}
       @getset_sha ||= @connection.script(:load, script)
-      @connection.evalsha(@getset_sha, key, yield)
+      @connection.evalsha(@getset_sha, keys: [key], argv: [yield])
     end
 
   end
