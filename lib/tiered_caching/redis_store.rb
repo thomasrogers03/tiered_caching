@@ -2,12 +2,17 @@ module TieredCaching
   class RedisStore
     extend Forwardable
 
-    def_delegators :@connection, :get, :set
+    def_delegator :@connection, :get
     def_delegator :@connection, :del, :delete
     def_delegator :@connection, :flushall, :clear
 
     def initialize(connection)
       @connection = connection
+    end
+
+    def set(key, value)
+      @connection.set(key, value)
+      value
     end
 
     def getset(key)

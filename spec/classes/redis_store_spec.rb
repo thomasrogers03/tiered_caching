@@ -7,13 +7,17 @@ module TieredCaching
       extend Forwardable
 
       def_delegator :@store, :[], :get
-      def_delegator :@store, :[]=, :set
       def_delegator :@store, :clear, :flushall
       def_delegator :@store, :delete, :del
       def_delegator :@store, :empty?
 
       def initialize
         @store = {}
+      end
+
+      def set(key, value)
+        @store[key] = value
+        'OK'
       end
 
       def script(type, script)
@@ -39,6 +43,10 @@ module TieredCaching
         expect(store.get(key)).to eq(value)
       end
 
+      it 'should return the value' do
+        expect(subject.set(key, value)).to eq(value)
+      end
+
       context 'with a different key-value pair' do
         let(:key) { 'cork' }
         let(:value) { :bottle }
@@ -46,6 +54,10 @@ module TieredCaching
         it 'should set the underlying key-value pair of the internal hash' do
           subject.set(key, value)
           expect(store.get(key)).to eq(value)
+        end
+
+        it 'should return the value' do
+          expect(subject.set(key, value)).to eq(value)
         end
       end
     end
