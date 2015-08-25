@@ -54,17 +54,25 @@ module TieredCaching
 
       context 'when a .on_missing method is defined' do
         before do
-          MockObject.on_missing { 'computed value' }
+          MockObject.on_missing { |key| "computed value from #{key}" }
         end
 
         it 'should be the return value of that block' do
-          expect(MockObject[key]).to eq('computed value')
+          expect(MockObject[key]).to eq('computed value from key')
         end
 
         it 'should cache that value' do
           MockObject[key]
           MockObject.on_missing { nil }
-          expect(MockObject[key]).to eq('computed value')
+          expect(MockObject[key]).to eq('computed value from key')
+        end
+
+        context 'with a different key' do
+          let(:key) { 'different key' }
+
+          it 'should be the return value of that block computed with the key' do
+            expect(MockObject[key]).to eq('computed value from different key')
+          end
         end
       end
     end

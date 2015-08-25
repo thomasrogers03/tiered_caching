@@ -12,7 +12,7 @@ module TieredCaching
 
     def [](key)
       if on_missing_callback
-        cache.getset(internal_key(key), &on_missing_callback)
+        cache.getset(internal_key(key)) { on_missing_callback.call(key) }
       else
         cache.get(internal_key(key))
       end
