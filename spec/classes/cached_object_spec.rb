@@ -5,6 +5,10 @@ module TieredCaching
 
     class MockObject
       include CachedObject
+
+      def self.reset!
+        @attributes = nil
+      end
     end
 
     class OtherMockObject
@@ -18,6 +22,7 @@ module TieredCaching
     subject { MockObject }
 
     before do
+      MockObject.reset!
       subject.cache_line = cache_line
       CacheMaster[cache_line] << global_store
       allow(Logging.logger).to receive(:warn)
@@ -44,6 +49,22 @@ module TieredCaching
         it 'should retrieve the object from the CacheMaster' do
           CacheMaster.set(class: OtherMockObject, key: key) { object }
           expect(subject[key]).to eq(object)
+        end
+      end
+
+      context 'when a .on_missing method is defined' do
+        before do
+          MockObject.on_missing { 'computed value' }
+        end
+
+        it 'should be the return value of that block' do
+          expect(MockObject[key]).to eq('computed value')
+        end
+
+        it 'should cache that value' do
+          MockObject[key]
+          MockObject.on_missing { nil }
+          expect(MockObject[key]).to eq('computed value')
         end
       end
     end
