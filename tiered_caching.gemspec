@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = 'tiered_caching'
-  s.version = '0.1.3'
+  s.version = '0.1.4'
   s.license = 'Apache License 2.0'
   s.summary = ''
   s.description = ''
