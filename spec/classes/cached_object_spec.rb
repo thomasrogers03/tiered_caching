@@ -35,6 +35,12 @@ module TieredCaching
         expect(subject[key]).to eq(object)
       end
 
+      context 'when the key is not a string' do
+        it 'should raise an error' do
+          expect { subject[Object] }.to raise_error(ArgumentError, 'Non-string keys are not supported!')
+        end
+      end
+
       context 'with a different key' do
         let(:key) { 'other key' }
 
@@ -91,6 +97,12 @@ module TieredCaching
       it 'should save the object using the class and specified key as the CacheMaster key' do
         subject[key] = object
         expect(CacheMaster.get(class: MockObject, key: key)).to eq(object)
+      end
+
+      context 'when the key is not a string' do
+        it 'should raise an error' do
+          expect { subject[Object] = object }.to raise_error(ArgumentError, 'Non-string keys are not supported!')
+        end
       end
 
       context 'with mixed key encodings using a serializing store' do
@@ -177,6 +189,12 @@ module TieredCaching
       it 'should save the object to cache using the specified key' do
         object.save_to_cache(key)
         expect(subject[key]).to eq(object)
+      end
+
+      context 'when the key is not a string' do
+        it 'should raise an error' do
+          expect { object.save_to_cache(Object) }.to raise_error(ArgumentError, 'Non-string keys are not supported!')
+        end
       end
 
       context 'with mixed key encodings using a serializing store' do

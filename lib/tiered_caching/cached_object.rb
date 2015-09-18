@@ -39,6 +39,7 @@ module TieredCaching
     end
 
     def internal_key(key)
+      raise ArgumentError, 'Non-string keys are not supported!' unless key.is_a?(String)
       {class: self, key: key.encode('UTF-8')}
     end
 
