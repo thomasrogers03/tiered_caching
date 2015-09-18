@@ -17,6 +17,26 @@ module StoreHelpers
     end
   end
 
+  class MockKeySerializingStore < MockStore
+    def get(key)
+      @store[serialized_key(key)]
+    end
+
+    def set(key, value)
+      @store[serialized_key(key)] = value
+    end
+
+    def getset(key)
+      @store[serialized_key(key)] ||= yield
+    end
+
+    private
+
+    def serialized_key(key)
+      Digest::MD5.hexdigest(Marshal.dump(key))
+    end
+  end
+
   class MockExecutor
     def post(*args, &block)
       @args = args
@@ -34,6 +54,7 @@ module StoreHelpers
   end
 
   let(:global_store) { MockStore.new }
+  let(:global_serializing_store) { MockKeySerializingStore.new }
 
   before { TieredCaching::CacheMaster.reset! }
 end

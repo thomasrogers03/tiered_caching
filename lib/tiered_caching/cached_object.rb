@@ -21,11 +21,11 @@ module TieredCaching
     def []=(key, value)
       raise TypeError, "Cannot convert #{value.class} into #{self}" unless value.is_a?(self)
 
-      cache.set(class: self, key: key) { value }
+      cache.set(internal_key(key)) { value }
     end
 
     def delete(key)
-      cache.delete(class: self, key: key)
+      cache.delete(internal_key(key))
     end
 
     private
@@ -39,7 +39,7 @@ module TieredCaching
     end
 
     def internal_key(key)
-      {class: self, key: key}
+      {class: self, key: key.encode('UTF-8')}
     end
 
     def attributes

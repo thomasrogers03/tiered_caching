@@ -18,13 +18,14 @@ module TieredCaching
     let(:key) { 'key' }
     let(:object) { subject.new }
     let(:cache_line) { nil }
+    let(:cache_store) { global_store }
 
     subject { MockObject }
 
     before do
       MockObject.reset!
       subject.cache_line = cache_line
-      CacheMaster[cache_line] << global_store
+      CacheMaster[cache_line] << cache_store
       allow(Logging.logger).to receive(:warn)
     end
 
@@ -40,6 +41,15 @@ module TieredCaching
         it 'should retrieve the object from the CacheMaster' do
           CacheMaster.set(class: MockObject, key: key) { object }
           expect(subject[key]).to eq(object)
+        end
+      end
+
+      context 'with mixed key encodings using a serializing store' do
+        let(:cache_store) { global_serializing_store }
+
+        it 'should normalized the requested key to UTF-8' do
+          CacheMaster.set(class: MockObject, key: key.encode('UTF-8')) { object }
+          expect(subject[key.encode('US-ASCII')]).to eq(object)
         end
       end
 
@@ -81,6 +91,15 @@ module TieredCaching
       it 'should save the object using the class and specified key as the CacheMaster key' do
         subject[key] = object
         expect(CacheMaster.get(class: MockObject, key: key)).to eq(object)
+      end
+
+      context 'with mixed key encodings using a serializing store' do
+        let(:cache_store) { global_serializing_store }
+
+        it 'should normalized the requested key to UTF-8' do
+          subject[key.encode('US-ASCII')] = object
+          expect(CacheMaster.get(class: MockObject, key: key.encode('UTF-8'))).to eq(object)
+        end
       end
 
       context 'with a different key' do
@@ -158,6 +177,15 @@ module TieredCaching
       it 'should save the object to cache using the specified key' do
         object.save_to_cache(key)
         expect(subject[key]).to eq(object)
+      end
+
+      context 'with mixed key encodings using a serializing store' do
+        let(:cache_store) { global_serializing_store }
+
+        it 'should normalized the requested key to UTF-8' do
+          object.save_to_cache(key.encode('US-ASCII'))
+          expect(subject[key.encode('BINARY')]).to eq(object)
+        end
       end
 
       context 'with a different key' do
