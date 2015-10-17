@@ -32,10 +32,12 @@ module TieredCaching
     end
 
     let(:store) { MockRedisStore.new }
+    let(:disconnected_error) { StandardError.new('Could not connect to redis') }
     let(:key) { 'key' }
     let(:value) { 'value' }
 
     subject { RedisStore.new(store) }
+    before { allow(Logging.logger).to receive(:warn) }
 
     describe '#set' do
       it 'should set the underlying key-value pair of the internal hash' do
@@ -58,6 +60,49 @@ module TieredCaching
 
         it 'should return the value' do
           expect(subject.set(key, value)).to eq(value)
+        end
+      end
+
+      context 'with a broken redis connection' do
+        before { allow(store).to receive(:set).and_raise(disconnected_error) }
+
+        it 'should return the specified value' do
+          expect(subject.set(key, value)).to eq(value)
+        end
+
+        it 'should warn about the disconnect' do
+          expect(Logging.logger).to receive(:warn).with("Error calling #set on redis store: #{disconnected_error}")
+          subject.set(key, value)
+        end
+
+        context 'when called multiple times' do
+          it 'should only log the error once' do
+            subject.set(key, value)
+            expect(Logging.logger).not_to receive(:warn)
+            subject.set(key, value)
+          end
+        end
+
+        describe 'reconnect' do
+          let(:time) { Time.at(0) }
+          let(:reconnect_time) { time + 5 }
+          let(:result) { [] }
+
+          before do
+            allow(store).to receive(:set) do |_, value|
+              if Time.now >= reconnect_time
+                result << value
+              else
+                raise disconnected_error
+              end
+            end
+          end
+
+          it 'should schedule a reconnect in 5s' do
+            Timecop.freeze(time) { subject.set(key, value) }
+            Timecop.freeze(reconnect_time) { subject.set(key, value) }
+            expect(result).to eq([value])
+          end
         end
       end
     end

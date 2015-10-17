@@ -8,10 +8,25 @@ module TieredCaching
 
     def initialize(connection)
       @connection = connection
+      @active_connection = @connection
     end
 
     def set(key, value)
-      @connection.set(key, value)
+      if @disconnect_time
+        if Time.now >= (@disconnect_time + 5)
+          @active_connection = @connection
+        end
+      end
+
+      if @active_connection
+        begin
+          @active_connection.set(key, value)
+        rescue => e
+          Logging.logger.warn("Error calling #set on redis store: #{e}")
+          @active_connection = nil
+          @disconnect_time = Time.now
+        end
+      end
       value
     end
 
