@@ -147,12 +147,11 @@ module TieredCaching
         describe 'reconnect' do
           let(:time) { Time.at(0) }
           let(:reconnect_time) { time + 5 }
-          let(:result) { [] }
 
           before do
             allow(store).to receive(:get) do |_|
               if Time.now >= reconnect_time
-                result << value
+                value
               else
                 raise disconnected_error
               end
@@ -161,8 +160,9 @@ module TieredCaching
 
           it 'should schedule a reconnect in 5s' do
             Timecop.freeze(time) { subject.get(key) }
-            Timecop.freeze(reconnect_time) { subject.get(key) }
-            expect(result).to eq([value])
+            result = nil
+            Timecop.freeze(reconnect_time) { result = subject.get(key) }
+            expect(result).to eq(value)
           end
         end
       end
