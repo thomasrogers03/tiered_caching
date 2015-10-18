@@ -89,15 +89,7 @@ module TieredCaching
           let(:reconnect_time) { time + 5 }
           let(:result) { [] }
 
-          before do
-            allow(store).to receive(:set) do |_, value|
-              if Time.now >= reconnect_time
-                result << value
-              else
-                raise disconnected_error
-              end
-            end
-          end
+          before { mock_reconnection(:set) { |_, value| result << value } }
 
           it 'should schedule a reconnect in 5s' do
             Timecop.freeze(time) { subject.set(key, value) }
@@ -148,15 +140,7 @@ module TieredCaching
           let(:time) { Time.at(0) }
           let(:reconnect_time) { time + 5 }
 
-          before do
-            allow(store).to receive(:get) do |_|
-              if Time.now >= reconnect_time
-                value
-              else
-                raise disconnected_error
-              end
-            end
-          end
+          before { mock_reconnection(:get) { |_, _| value } }
 
           it 'should schedule a reconnect in 5s' do
             Timecop.freeze(time) { subject.get(key) }
@@ -203,6 +187,18 @@ end}
     end
 
     it_behaves_like 'a store that deletes keys'
+
+    private
+
+    def mock_reconnection(method)
+      allow(store).to receive(method) do |key, value|
+        if Time.now >= reconnect_time
+          yield key, value
+        else
+          raise disconnected_error
+        end
+      end
+    end
 
   end
 end
