@@ -111,15 +111,15 @@ module TieredCaching
     describe '#get' do
       before { store.set(key, value) }
 
-      it 'should return the value of the underlying hash object' do
+      it 'should return the value of the underlying redis connection' do
         expect(subject.get(key)).to eq(value)
       end
 
       context 'with a different key-value pair' do
         let(:key) { 'cork' }
-        let(:value) { :bottle }
+        let(:value) { 'bottle' }
 
-        it 'should return the value of the underlying hash object' do
+        it 'should return the value of the underlying redis connection' do
           expect(subject.get(key)).to eq(value)
         end
       end
