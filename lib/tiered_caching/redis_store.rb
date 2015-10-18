@@ -2,6 +2,15 @@ module TieredCaching
   class RedisStore
     extend Forwardable
 
+    GETSET_SCRIPT = %q{local key = KEYS[1]
+local value = redis.call('get', key)
+if value then
+  return value
+else
+  redis.call('set', key, ARGV[1])
+  return ARGV[1]
+end}
+
     def_delegator :@connection, :del, :delete
     def_delegator :@connection, :flushall, :clear
 
@@ -20,15 +29,7 @@ module TieredCaching
     end
 
     def getset(key)
-      script = %q{local key = KEYS[1]
-local value = redis.call('get', key)
-if value then
-  return value
-else
-  redis.call('set', key, ARGV[1])
-  return ARGV[1]
-end}
-      @getset_sha ||= @connection.script(:load, script)
+      @getset_sha ||= @connection.script(:load, GETSET_SCRIPT)
       @connection.evalsha(@getset_sha, keys: [key], argv: [yield])
     end
 
