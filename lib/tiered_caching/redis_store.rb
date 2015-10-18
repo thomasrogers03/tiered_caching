@@ -2,7 +2,6 @@ module TieredCaching
   class RedisStore
     extend Forwardable
 
-    def_delegator :@connection, :get
     def_delegator :@connection, :del, :delete
     def_delegator :@connection, :flushall, :clear
 
@@ -13,8 +12,11 @@ module TieredCaching
 
     def set(key, value)
       with_connection(:set) { |connection| connection.set(key, value) }
-
       value
+    end
+
+    def get(key)
+      with_connection(:get) { |connection| connection.get(key) }
     end
 
     def getset(key)
@@ -46,6 +48,7 @@ end}
           Logging.logger.warn("Error calling ##{action} on redis store: #{e}")
           @active_connection = nil
           @disconnect_time = Time.now
+          nil
         end
       end
     end
