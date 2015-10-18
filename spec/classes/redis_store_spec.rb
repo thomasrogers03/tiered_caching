@@ -40,6 +40,21 @@ module TieredCaching
     subject { redis_store }
     before { allow(Logging.logger).to receive(:warn) }
 
+    shared_examples_for 'a broken connection logging a warning' do |method, args|
+      it 'should warn about the disconnect' do
+        expect(Logging.logger).to receive(:warn).with("Error calling ##{method} on redis store: #{disconnected_error}")
+        subject.public_send(method, *args)
+      end
+
+      context 'when called multiple times' do
+        it 'should only log the error once' do
+          subject.public_send(method, *args)
+          expect(Logging.logger).not_to receive(:warn)
+          subject.public_send(method, *args)
+        end
+      end
+    end
+
     describe '#set' do
       it 'should set the underlying key-value pair of the internal hash' do
         subject.set(key, value)
@@ -71,18 +86,7 @@ module TieredCaching
           expect(subject.set(key, value)).to eq(value)
         end
 
-        it 'should warn about the disconnect' do
-          expect(Logging.logger).to receive(:warn).with("Error calling #set on redis store: #{disconnected_error}")
-          subject.set(key, value)
-        end
-
-        context 'when called multiple times' do
-          it 'should only log the error once' do
-            subject.set(key, value)
-            expect(Logging.logger).not_to receive(:warn)
-            subject.set(key, value)
-          end
-        end
+        it_behaves_like 'a broken connection logging a warning', :set, %w(key value)
 
         describe 'reconnect' do
           let(:time) { Time.at(0) }
@@ -123,18 +127,7 @@ module TieredCaching
           expect(subject.get(key)).to be_nil
         end
 
-        it 'should warn about the disconnect' do
-          expect(Logging.logger).to receive(:warn).with("Error calling #get on redis store: #{disconnected_error}")
-          subject.get(key)
-        end
-
-        context 'when called multiple times' do
-          it 'should only log the error once' do
-            subject.get(key)
-            expect(Logging.logger).not_to receive(:warn)
-            subject.get(key)
-          end
-        end
+        it_behaves_like 'a broken connection logging a warning', :get, %w(key)
 
         describe 'reconnect' do
           let(:time) { Time.at(0) }
