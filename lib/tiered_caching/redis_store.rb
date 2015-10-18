@@ -29,8 +29,10 @@ end}
     end
 
     def getset(key)
-      @getset_sha ||= @connection.script(:load, GETSET_SCRIPT)
-      @connection.evalsha(@getset_sha, keys: [key], argv: [yield])
+      with_connection(:getset) do |connection|
+        @getset_sha ||= connection.script(:load, GETSET_SCRIPT)
+        connection.evalsha(@getset_sha, keys: [key], argv: [yield])
+      end
     end
 
     private
@@ -48,6 +50,7 @@ end}
         rescue => e
           Logging.logger.warn("Error calling ##{action} on redis store: #{e}")
           @active_connection = nil
+          @getset_sha = nil
           @disconnect_time = Time.now
           nil
         end

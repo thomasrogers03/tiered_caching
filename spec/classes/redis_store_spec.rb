@@ -35,9 +35,8 @@ module TieredCaching
     let(:disconnected_error) { StandardError.new('Could not connect to redis') }
     let(:key) { 'key' }
     let(:value) { 'value' }
-    let(:redis_store) { RedisStore.new(store) }
 
-    subject { redis_store }
+    subject { RedisStore.new(store) }
     before { allow(Logging.logger).to receive(:warn) }
 
     shared_examples_for 'a broken connection logging a warning' do |method, args|
@@ -175,6 +174,46 @@ end}
         it 'should execute a script executing a getset on redis conforming to other stores' do
           expect(store).to receive(:evalsha).with(sha, keys: [key], argv: [value])
           subject.getset(key) { value }
+        end
+      end
+
+      context 'with a broken redis connection' do
+        before { allow(store).to receive(:evalsha).and_raise(disconnected_error) }
+
+        it 'should return nil' do
+          expect(subject.getset(key) { value }).to be_nil
+        end
+
+        it 'should warn about the disconnect' do
+          expect(Logging.logger).to receive(:warn).with("Error calling #getset on redis store: #{disconnected_error}")
+          subject.getset(key) { value }
+        end
+
+        context 'when called multiple times' do
+          it 'should only log the error once' do
+            subject.getset(key) { value }
+            expect(Logging.logger).not_to receive(:warn)
+            subject.getset(key) { value }
+          end
+        end
+
+        describe 'reconnect' do
+          let(:time) { Time.at(0) }
+          let(:reconnect_time) { time + 5 }
+
+          before { mock_reconnection(:evalsha) { |_, _| value } }
+
+          it 'should schedule a reconnect in 5s' do
+            Timecop.freeze(time) { subject.getset(key) { value } }
+            result = Timecop.freeze(reconnect_time) { subject.getset(key) { value } }
+            expect(result).to eq(value)
+          end
+
+          it 'should invalidate the getset script' do
+            Timecop.freeze(time) { subject.getset(key) { value } }
+            expect(store).to receive(:script)
+            Timecop.freeze(reconnect_time) { subject.getset(key) { value } }
+          end
         end
       end
     end
