@@ -160,8 +160,7 @@ module TieredCaching
 
           it 'should schedule a reconnect in 5s' do
             Timecop.freeze(time) { subject.get(key) }
-            result = nil
-            Timecop.freeze(reconnect_time) { result = subject.get(key) }
+            result = Timecop.freeze(reconnect_time) { subject.get(key) }
             expect(result).to eq(value)
           end
         end
