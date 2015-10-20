@@ -144,16 +144,7 @@ module TieredCaching
     end
 
     describe '#getset' do
-      let(:script) do
-        %q{local key = KEYS[1]
-local value = redis.call('get', key)
-if value then
-  return value
-else
-  redis.call('set', key, ARGV[1])
-  return ARGV[1]
-end}
-      end
+      let(:script) { File.read(RedisStore::GETSET_PATH) }
       let(:sha) { store.script(:load, script) }
 
       it 'should execute a script executing a getset on redis conforming to other stores' do

@@ -14,6 +14,12 @@
 # limitations under the License.
 #++
 
+module TieredCaching
+  def self.root
+    @root ||= File.dirname(__FILE__)
+  end
+end
+
 require 'tiered_caching/cache_line'
 require 'tiered_caching/cache_master'
 require 'tiered_caching/cached_object'
