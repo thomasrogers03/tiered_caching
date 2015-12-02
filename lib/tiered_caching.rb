@@ -14,6 +14,8 @@
 # limitations under the License.
 #++
 
+require 'concurrent'
+
 module TieredCaching
   def self.root
     @root ||= File.dirname(__FILE__)

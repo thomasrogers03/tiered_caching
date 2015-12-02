@@ -1,24 +1,25 @@
 GIT
-  remote: https://github.com/thomasrogers03/thomas_utils.git
-  revision: 4b9f25f274be69c5b279bcf9144b499c25459de8
+  remote: git://github.com/thomasrogers03/thomas_utils.git
+  revision: 7a16b6d56f38e9df6dfd0771f5bab623fd0a0413
   specs:
-    thomas_utils (0.1.13.1)
+    thomas_utils (0.1.13.2)
       concurrent-ruby (~> 0.8)
       workers (~> 0.3)
 
 PATH
   remote: .
   specs:
-    tiered_caching (0.1.5)
-      concurrent-ruby (~> 0.8)
+    tiered_caching (0.1.5.1)
+      concurrent-ruby (~> 0.8.0)
       thomas_utils (~> 0.1)
 
 GEM
   remote: https://rubygems.org/
   specs:
     coderay (1.1.0)
-    concurrent-ruby (0.9.2)
-    concurrent-ruby (0.9.2-java)
+    concurrent-ruby (0.8.0)
+      ref (~> 1.0, >= 1.0.5)
+    concurrent-ruby (0.8.0-java)
     connection_pool (2.2.0)
     diff-lcs (1.2.5)
     docile (1.1.5)
@@ -68,6 +69,7 @@ GEM
       ffi (>= 0.5.0)
     rdoc (4.2.0)
       json (~> 1.4)
+    ref (1.0.5)
     rspec (3.1.0)
       rspec-core (~> 3.1.0)
       rspec-expectations (~> 3.1.0)
@@ -101,7 +103,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  concurrent-ruby
+  concurrent-ruby (~> 0.8.0)
   connection_pool
   guard
   guard-bundler
