@@ -7,7 +7,7 @@ group :development do
   require 'logger'
   gem 'rdoc'
   gem 'concurrent-ruby', require: 'concurrent'
-  gem 'thomas_utils', '~> 0.1.4', git: 'https://github.com/thomasrogers03/thomas_utils.git'
+  gem 'thomas_utils', '~> 0.1', git: 'https://github.com/thomasrogers03/thomas_utils.git'
 end
 
 group :test do
