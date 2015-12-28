@@ -14,6 +14,8 @@
 # limitations under the License.
 #++
 
+require 'yaml'
+require 'logger'
 require 'concurrent'
 
 module TieredCaching
