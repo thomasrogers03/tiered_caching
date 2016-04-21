@@ -4,7 +4,8 @@ gemspec
 
 group :development do
   gem 'rdoc'
-  gem 'thomas_utils', '~> 0.1', github: 'thomasrogers03/thomas_utils', require: false
+  gem 'concurrent-ruby', '>= 0.8.0', '< 1.1.0'
+  gem 'thomas_utils', '~> 0.1', github: 'thomasrogers03/thomas_utils'
 end
 
 group :test do

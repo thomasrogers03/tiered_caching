@@ -12,5 +12,5 @@ serializing and namespacing of Ruby objects}
   s.require_path = 'lib'
   s.homepage = 'https://www.github.com/thomasrogers03/tiered_caching'
   s.add_runtime_dependency 'thomas_utils', '~> 0.1'
-  s.add_runtime_dependency 'concurrent-ruby', '~> 1.0.0'
+  s.add_runtime_dependency 'concurrent-ruby', '>= 0.8.0', '< 1.1'
 end
