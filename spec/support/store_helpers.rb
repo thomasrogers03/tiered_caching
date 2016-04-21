@@ -37,7 +37,7 @@ module StoreHelpers
     end
   end
 
-  class MockExecutor
+  class MockExecutor < Concurrent::ImmediateExecutor
     def post(*args, &block)
       @args = args
       @callback = block
