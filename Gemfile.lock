@@ -9,7 +9,7 @@ GIT
 PATH
   remote: .
   specs:
-    tiered_caching (0.1.7)
+    tiered_caching (0.1.8)
       concurrent-ruby (>= 0.8.0, < 1.1)
       thomas_utils (~> 0.1)
 
