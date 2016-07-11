@@ -141,6 +141,18 @@ module TieredCaching
         subject.getset(key) { value }
       end
 
+      context 'with a ttl set' do
+        let(:script) { File.read(RedisStore::GETSET_TTL_PATH) }
+        let(:ttl) { rand(1..100) }
+
+        subject { RedisStore.new(store, ttl) }
+
+        it 'should execute a script executing a getset on redis conforming to other stores' do
+          expect(store).to receive(:evalsha).with(sha, keys: [key], argv: [value, ttl])
+          subject.getset(key) { value }
+        end
+      end
+
       it 'should cache the sha for the script' do
         subject.getset(key) { value }
         expect(store).not_to receive(:script)

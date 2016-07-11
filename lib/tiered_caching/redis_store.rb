@@ -5,6 +5,9 @@ module TieredCaching
     GETSET_PATH = File.join(TieredCaching.root, 'tiered_caching/redis_store/getset.lua')
     GETSET_SCRIPT = File.read(GETSET_PATH)
 
+    GETSET_TTL_PATH = File.join(TieredCaching.root, 'tiered_caching/redis_store/getset_ttl.lua')
+    GETSET_TTL_SCRIPT = File.read(GETSET_TTL_PATH)
+
     def_delegator :@connection, :del, :delete
     def_delegator :@connection, :flushall, :clear
 
@@ -28,12 +31,23 @@ module TieredCaching
 
     def getset(key)
       with_connection(:getset) do |connection|
-        @getset_sha ||= connection.script(:load, GETSET_SCRIPT)
-        connection.evalsha(@getset_sha, keys: [key], argv: [yield])
+        if @ttl
+          connection.evalsha(getset_ttl_sha(connection), keys: [key], argv: [yield, @ttl])
+        else
+          connection.evalsha(getset_sha(connection), keys: [key], argv: [yield])
+        end
       end
     end
 
     private
+
+    def getset_sha(connection)
+      @getset_sha ||= connection.script(:load, GETSET_SCRIPT)
+    end
+
+    def getset_ttl_sha(connection)
+      @getset_ttl_sha ||= connection.script(:load, GETSET_TTL_SCRIPT)
+    end
 
     def with_connection(action)
       if @disconnect_time
