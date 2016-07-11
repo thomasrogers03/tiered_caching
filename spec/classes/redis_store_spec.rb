@@ -37,6 +37,22 @@ module TieredCaching
         expect(subject.set(key, value)).to eq(value)
       end
 
+      it 'should not assign a ttl' do
+        subject.set(key, value)
+        expect(store.ttl(key)).to eq(-1)
+      end
+
+      context 'with a ttl specified' do
+        let(:ttl) { rand(1..100) }
+
+        subject { RedisStore.new(store, ttl) }
+
+        it 'should assign a ttl' do
+          subject.set(key, value)
+          expect(store.ttl(key)).to be_within(0.1).of(ttl)
+        end
+      end
+
       context 'with a different key-value pair' do
         let(:key) { 'cork' }
         let(:value) { :bottle }

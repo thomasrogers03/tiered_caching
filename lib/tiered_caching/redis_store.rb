@@ -8,13 +8,17 @@ module TieredCaching
     def_delegator :@connection, :del, :delete
     def_delegator :@connection, :flushall, :clear
 
-    def initialize(connection)
+    def initialize(connection, ttl = nil)
       @connection = connection
       @active_connection = @connection
+      @ttl = ttl
     end
 
     def set(key, value)
-      with_connection(:set) { |connection| connection.set(key, value) }
+      with_connection(:set) do |connection|
+        connection.set(key, value)
+        connection.expire(key, @ttl) if @ttl
+      end
       value
     end
 

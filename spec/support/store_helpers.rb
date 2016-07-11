@@ -85,7 +85,12 @@ module StoreHelpers
       end
 
       def ttl(key)
-        @store[key][:expiration] - Time.now
+        if @store.include?(key)
+          expiration = @store[key][:expiration]
+          expiration ? expiration - Time.now : -1
+        else
+          -2
+        end
       end
 
       def script(type, script)
