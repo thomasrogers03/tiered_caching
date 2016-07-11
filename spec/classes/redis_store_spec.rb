@@ -3,35 +3,53 @@ require 'rspec'
 module TieredCaching
   describe RedisStore do
 
-    class MockRedisStore
-      extend Forwardable
+    let(:store_klass) do
+      Class.new do
+        extend Forwardable
 
-      def_delegator :@store, :[], :get
-      def_delegator :@store, :clear, :flushall
-      def_delegator :@store, :delete, :del
-      def_delegator :@store, :empty?
+        def_delegator :@store, :[], :get
+        def_delegator :@store, :clear, :flushall
+        def_delegator :@store, :delete, :del
+        def_delegator :@store, :empty?
 
-      def initialize
-        @store = {}
-      end
+        def initialize
+          @store = Hash.new { |hash, key| hash[key] = {} }
+        end
 
-      def set(key, value)
-        @store[key] = value
-        'OK'
-      end
+        def set(key, value)
+          @store[key][:value] = value
+          'OK'
+        end
 
-      def script(type, script)
-        raise 'MockRedis#script only supports load!' unless type == :load
+        def get(key)
+          @store[key][:value]
+        end
 
-        Digest::SHA1.hexdigest(script)
-      end
+        def expire(key, ttl)
+          if @store.include?(key)
+            @store[key][:expiration] = Time.now + ttl.to_f
+            1
+          else
+            0
+          end
+        end
 
-      #noinspection RubyUnusedLocalVariable
-      def evalsha(sha, *args)
+        def ttl(key)
+          @store[key][:expiration] - Time.now
+        end
+
+        def script(type, script)
+          raise 'MockRedis#script only supports load!' unless type == :load
+
+          Digest::SHA1.hexdigest(script)
+        end
+
+        #noinspection RubyUnusedLocalVariable
+        def evalsha(sha, *args)
+        end
       end
     end
-
-    let(:store) { MockRedisStore.new }
+    let(:store) { store_klass.new }
     let(:disconnected_error) { StandardError.new('Could not connect to redis') }
     let(:key) { 'key' }
     let(:value) { 'value' }
