@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = 'tiered_caching'
-  s.version = '0.1.8'
+  s.version = '0.1.9'
   s.license = 'Apache License 2.0'
   s.summary = 'Tiered caching for Ruby'
   s.description = %q{Tiered caching provides a simple, fast and easy to use
