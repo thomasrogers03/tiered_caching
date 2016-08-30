@@ -105,6 +105,15 @@ module TieredCaching
         expect(subject).to receive(:unlock).ordered
         subject.synchronize(&block)
       end
+
+      context 'with a timeout specified' do
+        let(:timeout) { rand(1..100) }
+
+        it 'should lock using the specified timeout' do
+          expect(subject).to receive(:lock).with(timeout)
+          subject.synchronize(timeout, &block)
+        end
+      end
     end
 
   end

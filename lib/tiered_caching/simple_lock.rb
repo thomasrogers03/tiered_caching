@@ -23,8 +23,8 @@ module TieredCaching
       @store.del(@key)
     end
 
-    def synchronize
-      lock
+    def synchronize(timeout = nil)
+      lock(timeout)
       yield
       unlock
     end
