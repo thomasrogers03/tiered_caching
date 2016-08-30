@@ -99,6 +99,8 @@ module TieredCaching
       let(:callee) { double(:mock_block, call: nil) }
       let(:block) { ->() { callee.call } }
 
+      before { allow(subject).to receive(:lock) }
+
       it 'should lock, yield, then unlock' do
         expect(subject).to receive(:lock).ordered
         expect(callee).to receive(:call).ordered
@@ -112,6 +114,15 @@ module TieredCaching
         it 'should lock using the specified timeout' do
           expect(subject).to receive(:lock).with(timeout)
           subject.synchronize(timeout, &block)
+        end
+      end
+
+      context 'when the block raises an error' do
+        let(:block) { ->() { raise 'It blew up!' } }
+
+        it 'should still unlock' do
+          expect(subject).to receive(:unlock)
+          subject.synchronize(&block) rescue nil
         end
       end
     end

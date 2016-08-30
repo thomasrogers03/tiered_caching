@@ -26,6 +26,7 @@ module TieredCaching
     def synchronize(timeout = nil)
       lock(timeout)
       yield
+    ensure
       unlock
     end
 
