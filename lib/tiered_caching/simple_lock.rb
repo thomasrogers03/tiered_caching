@@ -23,5 +23,11 @@ module TieredCaching
       @store.del(@key)
     end
 
+    def synchronize
+      lock
+      yield
+      unlock
+    end
+
   end
 end

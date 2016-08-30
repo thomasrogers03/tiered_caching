@@ -64,5 +64,17 @@ module TieredCaching
       end
     end
 
+    describe '#synchronize' do
+      let(:callee) { double(:mock_block, call: nil) }
+      let(:block) { ->() { callee.call } }
+
+      it 'should lock, yield, then unlock' do
+        expect(subject).to receive(:lock).ordered
+        expect(callee).to receive(:call).ordered
+        expect(subject).to receive(:unlock).ordered
+        subject.synchronize(&block)
+      end
+    end
+
   end
 end
