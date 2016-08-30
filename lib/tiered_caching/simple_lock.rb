@@ -12,16 +12,7 @@ module TieredCaching
     end
 
     def lock(timeout = nil)
-      if timeout
-        try_count = 0
-        until try_lock
-          try_count += 1
-          raise 'Timed out waiting for lock!' if try_count > timeout
-          sleep 1
-        end
-      else
-        sleep 1 until try_lock
-      end
+      timeout ? lock_with_timeout(timeout) : lock_without_timeout
     end
 
     def heartbeat
@@ -39,6 +30,19 @@ module TieredCaching
     end
 
     private
+
+    def lock_without_timeout
+      sleep 1 until try_lock
+    end
+
+    def lock_with_timeout(timeout)
+      try_count = 0
+      until try_lock
+        try_count += 1
+        raise 'Timed out waiting for lock!' if try_count > timeout
+        sleep 1
+      end
+    end
 
     def try_lock
       @store.evalsha(@script_sha, keys: [@key], argv: [@id, @ttl]) == @id
