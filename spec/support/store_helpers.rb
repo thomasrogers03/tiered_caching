@@ -68,15 +68,16 @@ module StoreHelpers
 
       def set(key, value)
         @store[key][:value] = value
+        @store[key][:expiration] = nil
         'OK'
       end
 
       def get(key)
-        @store[key][:value]
+        @store[key][:value] if has_key?(key)
       end
 
       def expire(key, ttl)
-        if @store.include?(key)
+        if has_key?(key)
           @store[key][:expiration] = Time.now + ttl.to_f
           1
         else
@@ -85,7 +86,7 @@ module StoreHelpers
       end
 
       def ttl(key)
-        if @store.include?(key)
+        if has_key?(key)
           expiration = @store[key][:expiration]
           expiration ? expiration - Time.now : -1
         else
@@ -101,6 +102,12 @@ module StoreHelpers
 
       #noinspection RubyUnusedLocalVariable
       def evalsha(sha, *args)
+      end
+
+      private
+
+      def has_key?(key)
+        @store.include?(key) && !(@store[key][:expiration] && @store[key][:expiration] <= Time.now)
       end
     end
   end
