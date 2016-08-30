@@ -12,11 +12,14 @@ module TieredCaching
 
     subject { SimpleLock.new(store, key) }
 
-    before { allow(SecureRandom).to receive(:base64).and_return(lock_id) }
+    before do
+      allow(SecureRandom).to receive(:base64).and_return(lock_id)
+      allow(subject).to receive(:sleep)
+    end
 
     describe '#lock' do
       it 'runs the locking script' do
-        expect(store).to receive(:evalsha).with(sha, keys: [key], argv: [lock_id, 5])
+        expect(store).to receive(:evalsha).with(sha, keys: [key], argv: [lock_id, 5]).and_return(lock_id)
         subject.lock
       end
 
@@ -26,7 +29,18 @@ module TieredCaching
         subject { SimpleLock.new(store, key, ttl) }
 
         it 'runs the locking script with the specified timeout' do
-          expect(store).to receive(:evalsha).with(sha, keys: [key], argv: [lock_id, ttl])
+          expect(store).to receive(:evalsha).with(sha, keys: [key], argv: [lock_id, ttl]).and_return(lock_id)
+          subject.lock
+        end
+      end
+
+      context 'when the lock has already been acquired elsewhere' do
+        let(:other_lock_id) { Faker::Lorem.sentence }
+
+        before { allow(store).to receive(:evalsha).and_return(other_lock_id, other_lock_id, lock_id) }
+
+        it 'should wait for a lock' do
+          expect(subject).to receive(:sleep).with(1).exactly(2).times
           subject.lock
         end
       end

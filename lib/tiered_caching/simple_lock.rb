@@ -12,7 +12,7 @@ module TieredCaching
     end
 
     def lock
-      @store.evalsha(@script_sha, keys: [@key], argv: [@id, @ttl])
+      sleep 1 until try_lock
     end
 
     def heartbeat
@@ -27,6 +27,12 @@ module TieredCaching
       lock
       yield
       unlock
+    end
+
+    private
+
+    def try_lock
+      @store.evalsha(@script_sha, keys: [@key], argv: [@id, @ttl]) == @id
     end
 
   end
