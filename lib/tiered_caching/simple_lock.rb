@@ -11,8 +11,17 @@ module TieredCaching
       @script_sha = @store.script(:load, LOCK_SCRIPT)
     end
 
-    def lock
-      sleep 1 until try_lock
+    def lock(timeout = nil)
+      if timeout
+        try_count = 0
+        until try_lock
+          try_count += 1
+          raise 'Timed out waiting for lock!' if try_count > timeout
+          sleep 1
+        end
+      else
+        sleep 1 until try_lock
+      end
     end
 
     def heartbeat

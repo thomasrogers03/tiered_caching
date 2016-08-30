@@ -36,12 +36,29 @@ module TieredCaching
 
       context 'when the lock has already been acquired elsewhere' do
         let(:other_lock_id) { Faker::Lorem.sentence }
+        let(:locks) { [other_lock_id, other_lock_id, lock_id] }
 
-        before { allow(store).to receive(:evalsha).and_return(other_lock_id, other_lock_id, lock_id) }
+        before { allow(store).to receive(:evalsha).and_return(*locks) }
 
         it 'should wait for a lock' do
           expect(subject).to receive(:sleep).with(1).exactly(2).times
           subject.lock
+        end
+
+        context 'when a timeout is specified' do
+          let(:timeout) { 1 }
+
+          it 'should raise an error indicating that it was unable to retrieve the lock' do
+            expect { subject.lock(timeout) }.to raise_error('Timed out waiting for lock!')
+          end
+
+          context 'when the timeout is sufficient to wait for it to be unlocked' do
+            let(:timeout) { 2 }
+
+            it 'should not raise an error' do
+              expect { subject.lock(timeout) }.not_to raise_error
+            end
+          end
         end
       end
     end
